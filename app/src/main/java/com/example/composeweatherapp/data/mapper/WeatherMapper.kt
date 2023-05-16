@@ -2,11 +2,11 @@ package com.example.composeweatherapp.data.mapper
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.example.composeweatherapp.data.remote.WeatherDataObject
-import com.example.composeweatherapp.data.remote.WeatherDataTransferObject
-import com.example.composeweatherapp.domain.weather.WeatherData
-import com.example.composeweatherapp.domain.weather.WeatherDetails
-import com.example.composeweatherapp.domain.weather.WeatherInterpretation
+import com.example.composeweatherapp.data.remote.WeatherDataDTO
+import com.example.composeweatherapp.data.remote.WeatherDTO
+import com.example.composeweatherapp.domain.weather.WeatherDataClass
+import com.example.composeweatherapp.domain.weather.WeatherInfo
+import com.example.composeweatherapp.domain.weather.WeatherType
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -15,17 +15,19 @@ import java.time.format.DateTimeFormatter
 //API returns hourly temp, hence we need a map with 24 x 7 entries
 
 
-data class WeatherDataIndexed(val index: Int, val data: WeatherData)
+data class IndexedWeatherData(val index: Int, val data: WeatherDataClass)
 
-//extension functions to map one API object to local object
+//TODO - extension functions to map one API object to local object
+
+
 @RequiresApi(Build.VERSION_CODES.O)
-fun WeatherDataObject.toWeatherDetailsMap(): Map<Int, List<WeatherData>> {
+fun WeatherDataDTO.toWeatherDataMap(): Map<Int, List<WeatherDataClass>> {
     //refers to the map here WeatherDetails.kt map the Date to the corresponding weatherData
     //if date is 0 i.e. today, the list will have data for each of the 24 hours
     return timeList.mapIndexed { index, time ->
         //list of time string (hours) being mapped to related data for that particular hour
         //mapIndexed runs a loop
-        //mapping time values to data sets
+        //mapping time values to all available data objects
         // the value for index variable will be large as it provides 24 hours x 7 days
         val temperature = temperatureList[index]
         val weatherCode = weatherCodeList[index]
@@ -33,34 +35,35 @@ fun WeatherDataObject.toWeatherDetailsMap(): Map<Int, List<WeatherData>> {
         val relativeHumidity = relativeHumidityList[index]
         val windSpeed = windSpeedList[index]
         val pressure = pressureList[index]
-        WeatherDataIndexed(
+        IndexedWeatherData(
             index = index,
-            data = WeatherData(
+            data = WeatherDataClass(
                 time = LocalDateTime.parse(time, DateTimeFormatter.ISO_DATE_TIME),
                 temperatureCelsius = temperature,
                 apparentTemperature = apparentTemperature,
                 relativeHumidity = relativeHumidity,
                 windSpeed = windSpeed,
                 pressure = pressure,
-                weatherInterpretation = WeatherInterpretation.weatherVariable(weatherCode)
+                weatherType = WeatherType.fromWMO(weatherCode)
             )
         )
     }.groupBy {
         it.index / 24   //where 24/24 will become index 1 i.e. next day
-    }.mapValues {
+    }.mapValues {  //mapping values of indexed weather data to normal weather data
         it.value.map { it.data }
     }
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
-fun WeatherDataTransferObject.toWeatherDetails(): WeatherDetails {
+fun WeatherDTO.toWeatherInfo(): WeatherInfo {
     val weatherDataMap = weatherData.toWeatherDataMap()
     val now = LocalDateTime.now()
-    val currentTimeWeatherData = weatherDataMap[0]?.find {
+    val currentWeatherData = weatherDataMap[0]?.find {
         val hour = if (now.minute < 30) now.hour else now.hour + 1
         it.time.hour == hour
     }
-    return WeatherDetails(
-        TodaysWeatherData = weatherDataMap, currentTimeWeatherData = currentTimeWeatherData
+    return WeatherInfo(
+        weatherDataPerDay = weatherDataMap,
+        currentWeatherData = currentTimeWeatherData
     )
 }

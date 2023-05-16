@@ -12,6 +12,6 @@ interface retrofitAPI {
 
     suspend fun getLocationData(
         @Query("latitude") latitude: Double, @Query("longitude") longitude: Double
-    ): WeatherDataObject
+    ): WeatherDataDTO
 
 }
