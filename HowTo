@@ -148,6 +148,47 @@ you need location permissions enabled. uses - coarse and fine location
 create data > location > DefaultLocationTracker , it implements LocationTracker interface - implement members
 now we figure what variables we need or what objs we need to instantiate in the constructor:
 we define locationClient which is a FusedLocationProviderClient
+so how do we get location and how do we do it with coroutines?
+getCurrLocation uses the following:
+checks fine location permission - ContextCompat.checkSelfPermission(app, Manifest.perm.Finelocation)
+checks coarse location permission - 
+uses locationManager - uses a reference to LocationManager (System Service) from Android Framework - 
+isGpsEnabled - checks if locationManager has provider enabled from the cell Network or using GPS
+if we not have access, return null or an error message. else we start retrieving the location
+we do that using a suspendCancellableCoroutine using a continuation variable
+convert a callback to a suspending coroutine
+retrieve the location using locationClient and get the lastLocation and Apply that gives us a TASK
+which we use to listen for successful result, error or otherwise.
+Since this ia s task,we use isComplete, isSuccessful and result from TASK funs
+"resume" is from Continuation.kt - continuation after a SUSPENSION POINT
+make sure to use the RESUME with single location
+return@suspendCancellableCoroutine
+
+this is how we transform the addOnSuccessListner callbacks into a coroutine - Failure or Canceled
+
+so when we call get fun, it blocks the coroutine and works on location and then resumes/CONTINUATION of coroutine.
+
+now we move on to DI part of project
+create a di > AppModule object
+annotate with @Module and @InstallIn(SingletonComponent::clasS) - as all dependencies will be Singletons
+within it, we start with @Provides and @Singlton at beginning of fun that providesWeatherApi and returns a WeatherApi
+and it returns a Retrofit Builder
+now check in DefaultLocationTracker, it needs a FusedLocationProviderClient
+so we continue to build another @Provides fun
+
+build di> LocationModule
+but in this case, we use @Binds instead of @Provides - as wewant to bind the defaultLocationTracker but is provided as an interface
+So whenever we inject a LocationTracker, it will use an instance of defaultLT, it only works if we have a @Inject constructore here in DefaultLocationTracker class, and only works if dagger knows how o create these instances
+
+next build a RepositorModule.kt with abstract fun bindWeatherRepository that carries an abtraction of WeatherRepository
+
+Now, dagger needs an Application class, so we build a WeatherApp.kt in the root folder
+remember to add this application class into the Manifest as android:name=".AppName"
+
+Hilt dependency injection is done!
+
+Since this is Clean Architecture, we now work on ViewModel - interacts with Domain Layer. So ideally the Ui should take values from state and UI components and only focus on displaying the values.
+
 
 
 
