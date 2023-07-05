@@ -87,10 +87,83 @@ return List of Time String values i.e. for each hour in this format "2022-06-26T
 we use mapIndexed where an index value is mapped to String,(time String)
 "->" matlab "to" WeatherData objects
 mapping values as follows: val temperature = temperatures at the index of index - thereby generating references to single values
-since all of these lists have same length we use same index for all
-then we mapp all these to a WeatherData object
-time will be parsed with localDateTime using ISO format
-now here as you see, all the variables in the WeatherDataClass are being mapped to time
+since all of these lists (temp, weatherCode, humidity, etc) have the same length we use the same index for all
+now, we map all these to a WeatherDataClass object ()
+time will be parsed with localDateTime using ISO DateTimeFormatter
+now here as you see, all the variables in the WeatherDataClass are being mapped to time and other variables
+we pass the weatherCode into the WeatherType first and then map it to weathertype in the WeatherDataClass obj
+
+So now, time values have been mapped to other values
+but we still do not have the map that maps the day index to weatherDataList
+
+this is where we bring in the groupBy feature in maps. where we map that returns a list of any type "K" mapped to List<WeatherData>
+with the statement it.time.dayOfMonth we are mapping the day of the month to the Weatherdata
+
+But this is only for index day 0, i.e. today. if we need to show forecast in the app, we will have to add values to the index to dispaly future day weather, e.g. index + 5 for 5th day data
+It makes sense to have a MAP that has 7 keys for next 7-day forecast display i.e. 0 to 6
+
+But the prob is that the "keys" in map do not have an index like other lists
+we simply can not do .mapKeys { it.index} - illegal syntax
+
+So the index value in the return statement for fun WeatherDataDto.toWeatherDataMap() will have 24 * 7 values. i.e. 24-hours for each fo the next 7 days of week
+check the JSON from API, it carried 24 String values for today's time and each for next 7 days
+
+Lets use this, create a data class IndexedWeatherdata, a temporary class to forward the index parameters
+
+Lets go back to our map fun and replace the mapping from WeatherDataClass to IndexedWeatherData
+where index = current index
+and in groupBy, we change it. index divided by 24
+and further mapValues{ it.value.map {it.data}  - mapping the values to the normal weatherdataClass - we know data is the WeatherDataClass as specifie din the private data class above
+
+now the next fun will map WeatherDto (hourly data) to WeatherInfo currentWeather and DataPerDay(which now already has data populated from previous fun)
+it returns the WeatherInfo
+variable CurrentWeatherData will carry index of '0' for today it futher fnds the weather data for current hour by using FIND
+now to find the time right now, we user hour variable that checks whether now.minute is less than 30 (half hour)
+
+CAN EXTEND THE FORECAST FOR A WEEK LATER
+
+Next, we define a domain > repository > WeatherRepository interface - it combines the data sources
+Repository should always be abstracted out with an interface to be able to add to Domain
+Reason to abstract out i.e. create interface - it becomes easy to swap out implemntation details, if we later decide to use a different API, retrofit to ktor, etc.
+Not all classes should depend on the interface.
+within the WeatherRepository start creating sus funs that getData from Repo (local or remote)
+the sus fun getweatherData returns a Resource of type WeatherInfo - weatherPerDay or CurrentWeather, so that the result from API can be transferred to next layer i.e. the VM
+
+now we draft a WeatherRepo Implementation in data > repository > WeatherRepositoryImpl
+it implements the WeatherRepository interface and then you implement members
+Now we also need access to API (i.e. WeatherApi) so instantiate it inside constructor
+as now dagger Hilt is coming into play, use the annotation @Inject
+
+if dagger knows how to get this Api, it can create the instance for repo. Later on that
+
+We use a TRY-CATCH to check the return for errors. The return is basically fetching the location data, which is then mapped to WeatherInfo
+TRY block returns either Success or Error depending on sealed Resources class that has 2 sub classes
+
+Location tracking is data-related, so we will have abstraction using a location tracker interface.
+So we will have Location packages (based on their context) within the domain as well as data packages. Domain ones will have abstraction (locationTracker interface) while data will fetch its data
+lets start with domain > location > LocationTracker
+that has a getCurrentLocation fun that runs as coroutine and returns a Location
+you need location permissions enabled. uses - coarse and fine location
+
+create data > location > DefaultLocationTracker , it implements LocationTracker interface - implement members
+now we figure what variables we need or what objs we need to instantiate in the constructor:
+we define locationClient which is a FusedLocationProviderClient
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
