@@ -1,1 +1,125 @@
+Description - clean architecture, clean code
+
+add dependencies:
+Project Gradel - classpath Dagger-hilt
+and plugins - kotlin n all
+remember to use a task clean for rootProject.buildDir
+
+Module:App Gradle - 
+kapt and hilt plugins
+manage java versiona nd jvm target to 17(matching them to kotlin version)
+
+added some colors in Color.kt within the theme package
+
+create WeatherType.kt in Domain > Weather >
+has references to different types of weather, basis the codes from the API
+also assign a drawable resource in line with the weatherType
+
+Define a Resource.kt file for success and error in Domain  > Util
+helps distinguish between Sucess and Error - more later!
+
+Lets setup the API
+Presentation - views, VM
+Domain - innermost layer - core behavior, biz logic. should not know about other layers - no API,. no database.
+Data - interacts with data sources like localDB, API.
+
+so let's create a data > remote package > WeatherApi interface
+define a coroutine (sus fun) to get user location first - @Query in retrofit that define latitude and longitude
+specify @GET endpoint
+the sus fun should return something from the API, that would be your DTO
+converts json response form API to android data
+
+define WeatherDTO data class
+ideally, the variable name should be the same as the JSON file i.e. "hourly," but since we are changing it a desired name, we annotate
+@field:Json(name="hourly")  ----  because API response is an array of HOURLY data
+since we are mostly interested in hourly data, we try to catch that data in our DTO data class
+we are renaming "houly" to "weatherData" variable name
+
+now define WeatherDataDto data class, which will have all the weather data in the blocks, I mean the data 
+annotate all fields from json to local variables for easy display, they are variables inside the hourly block
+EXCEPT for - longitude latitude data
+
+go back to WeatherApi and change return for the sus fun to WeatherDTO
+
+Now, API has been created, now we work on building Domain to keep architecture clean
+
+innermost layer that knows nothing about implementation tools like retrofit or ktro, etc
+
+Wether DTO objs we created already contain implementation details of API, hence they con not be directly used
+e.g. WeatherDataDto uses moshi.json (in imports)
+
+So we need to use Mappers at the Data level - they take data from DTO obj and map them to objects that lye on the domain layer. Such objs on domain layer do not carry any implementation
+
+domain layer should not know about it- BECAUSE - if you wish to change implementation details. e.g. use ktor instead of retrofit. or change db.  so such changes at data layer will affect the domain layer, which should stay aloof of any such changes
+Core logic/foundation of your app shuld remain same and not affected by changes in data layer.
+
+Domain models are objs or classes that are easy to change. rather than DTO that are difficult to code because they carry actual data in Lists.
+
+checkout the WeatherType.kt file in domain package. it is pretty straight forward and readable as you can check it and know what kind of weather there is
+
+create a new class WeatherInfo in domain > weather
+it has list of weather data figures per day basis. i.e. during those 24 hours
+the variable weatherDataPerDay maps an integer value (current day index) to list of WeatherData list for that day i.e. list of type WeatherdataClass
+the list will have hourly data for the day.e.g today index '0' will show full day data temp, humidity, etc.
+and tomorrow index '1' will show tomorrow full day data - FUTURE
+and variable currentWeatherData will show today current hour's data - PRESENT
+although the current hour data is already in the mapped list, but we create a separate variable for it.
+
+
+you can have Domain > Models for scalability, but here we are sticking to domain > Weather
+
+Lets create the data class WeatherdataClass which has different variables. time should be LocalDateTime java
+
+a WeatherDataClass obj would be much easier to deal with
+The DTOs (WeatherdataDto) had a lot of lists to work with. As we define Domain objects we have brought the lists to more manageable data
+
+we parse the data in our mapper once and then deal with the WeatherdataObjects that carry values
+
+Let's create Mappers inside Data > Mapper> WeatherMapper.kt
+they are in data layer instead of domain layer as they need to be allowed to interact with DTOs
+inside WeatherMapper.kt:
+
+The first fun should be that one that maps the WeatherDataDto to WeatherDataMap()
+this MAP is the MAP we mentioned inside the WeatherInfo.kt file previously
+so we MAP the Day number to the List of data i.e. 24 entries
+this Map fun will transform WeatherDataDto into a MAP
+return List of Time String values i.e. for each hour in this format "2022-06-26T00:00"
+we use mapIndexed where an index value is mapped to String,(time String)
+"->" matlab "to" WeatherData objects
+mapping values as follows: val temperature = temperatures at the index of index - thereby generating references to single values
+since all of these lists have same length we use same index for all
+then we mapp all these to a WeatherData object
+time will be parsed with localDateTime using ISO format
+now here as you see, all the variables in the WeatherDataClass are being mapped to time
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
