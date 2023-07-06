@@ -189,6 +189,9 @@ Hilt dependency injection is done!
 
 Since this is Clean Architecture, we now work on ViewModel - interacts with Domain Layer. So ideally the Ui should take values from state and UI components and only focus on displaying the values.
 
+build presentation > WeatherState data class with params - weatherInfo which will be initiated as null, because we need to retrieve data first
+
+
 
 
 
