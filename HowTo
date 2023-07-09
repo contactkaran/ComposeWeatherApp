@@ -191,41 +191,43 @@ Since this is Clean Architecture, we now work on ViewModel - interacts with Doma
 
 build presentation > WeatherState data class with params - weatherInfo which will be initiated as null, because we need to retrieve data first
 
+create a new VM file - presentation > WeatherVM
+make it a @HiltVM so that we can easily inject dependencies inside the VM
+Define the @Inject constructor declaration and pass the variables for repo and location
+start with an instance of State i.e. WeatherState and mark it private set so that only VM can change the state values
+
+fun loadWeatherInfo will call the API and get the location and combine it with the state
+call the classes from domain layer and mao the results - which happens in a coroutine
+first set the state to Loading - state = state.copy(WHATEVER YOU WANT TO SET)
+and we reset the error value to null
+now start to retrieve the location
+if the location is not null, the LET {} - this helps us t make call to API to get data basis the location
+so, when Resource.Success then weatherInfo will be the data from result(API call), Loading is FALSE, error is null
+but when, Resource.Error, then weatherInfo goes null, isL:oading still remains FALSE, but error = result.message
+So the state changes deneding on the result of API call
+now if we do not get the results from location query, we run a KOTLIN  block
+
+Let's build the UI!
+start by making a WeatherCard.kt file which will contain the weather info for current day
+Also, need to insert a check that we show Weather info only when the STATE is not null
+Text which carries current time
+followed by the Image from WeatherType
+TextStyle to be able to change Color
+
+sewing all up into ManActivity - remember to annotate with @AndroidEntryPoint
+define variables like VM, and launcherPermissions
+ActivityResultLauncher of type Array of type String
+ARL is a launcher for a previously-prepared call to start the process of executing an ActivityResultContract
+ARC is a contract specifying that an activity can be called with an input of type I and produce an output of type O.
+
+so we define the variable permissionLauncher of type ActivityResultLauncher of type Array of type Strings
+So, inside onCreate, we mention permissionLauncher = registerForActivityResult(), which inturn calls
+ActivityResultContracts.RequestMultiplePermissions()
+and as a callback we call viewModel.loadWeatherInfo()
+now that weatherInfo has been loaded, we need permissionLauncher to launch array of Manifest permissions
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+To display the next 7 day forecast we need a lazyRow, defining it separately in a fun WeatherForecast()
 
 
 
