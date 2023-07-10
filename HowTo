@@ -227,10 +227,16 @@ and as a callback we call viewModel.loadWeatherInfo()
 now that weatherInfo has been loaded, we need permissionLauncher to launch array of Manifest permissions
 
 
-To display the next 7 day forecast we need a lazyRow, defining it separately in a fun WeatherForecast()
+To display the next 7-day forecast we need a lazyRow, defining it separately in a fun WeatherForecast()
+specify all items(data) and get all the  weatherData details -> 
 
+now we need a column with 3 items in it Time, weather icon and temp. Side-scrolling row items
+we call it HourslyWeatherDisplay
 
+In mainActivity
 
+we want to show circular indiscator when viewModel.state isLoading
+also check if VM.State.Error is not null
 
 
 
