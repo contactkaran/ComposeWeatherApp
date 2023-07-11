@@ -11,4 +11,4 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val ColorTopStart = Color(0xFF105804)  //DarkBlue
-val ColorBottomStop = Color(0xFF5DF534)  //DeepBlue
+val ColorBottomStop = Color(0xFF348BF5)  //DeepBlue

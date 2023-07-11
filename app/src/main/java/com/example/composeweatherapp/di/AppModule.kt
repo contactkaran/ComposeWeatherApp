@@ -21,7 +21,7 @@ object AppModule {
     @Singleton
     fun providesWeatherApi(): WeatherApi {
         return Retrofit.Builder()
-            .baseUrl("https://api.open-mateo.com/")
+            .baseUrl("https://api.open-meteo.com/")
             .addConverterFactory(
                 MoshiConverterFactory.create()
             )
